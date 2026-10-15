@@ -13,5 +13,5 @@ http.createServer((req,res) => {
     if (error) { res.writeHead(404).end('Not found'); return; }
     res.writeHead(200, { 'Content-Type':mime[path.extname(filename)] || 'application/octet-stream', 'Cache-Control':'no-store' }); res.end(data);
   });
-}).listen(port, '127.0.0.1', () => console.log('Mohlat preview: http://localhost:' + port));
+}).listen(port, '127.0.0.1', () => console.log('DeadTime preview: http://localhost:' + port));
 
