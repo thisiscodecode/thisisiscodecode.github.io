@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#7258df">
+  <meta name="description" content="مهلت؛ فضای شخصی شما برای برنامه‌ریزی درس‌ها، مدیریت تکالیف و نگهداری فایل‌ها. با خیال آسوده به کار بعدی برسید.">
+  <title>مهلت — یک قدم جلوتر از موعد</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-logo" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M7 3v4c0 3 5 3 5 5s-5 2-5 5v4m10-18v4c0 3-5 3-5 5s5 2 5 5v4"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-13 5h2m4 0h2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3m-5 5 5-5 5 5M4 16v4h16v-4"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Zm0 0v6h6M8 13h8m-8 4h5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="m10.3 4-8 14a2 2 0 0 0 1.7 3h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0ZM12 9v4m0 4h.01"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/></symbol>
+  </defs></svg>
+  <a class="skip-link" href="#main">رفتن به محتوای اصلی</a>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="./" aria-label="مهلت، صفحهٔ اصلی"><span class="brand-mark"><svg class="icon"><use href="#i-logo"/></svg></span><span>مهلت<small>برای روزهای منظم‌تر</small></span></a>
+      <div class="workspace"><span class="workspace-icon"><svg class="icon"><use href="#i-spark"/></svg></span><div>میز مطالعهٔ من<small>هر روز، یک قدم جلوتر</small></div><span class="workspace-chevron" aria-hidden="true">⌄</span></div>
+      <p class="nav-caption">فضای کار</p>
+      <nav aria-label="منوی اصلی">
+        <button class="nav-item active" data-view="active" aria-current="page"><svg class="icon"><use href="#i-grid"/></svg> نمای کلی <b id="nav-count">۰</b></button>
+        <button class="nav-item" data-view="week"><svg class="icon"><use href="#i-calendar"/></svg> هفت روز آینده</button>
+        <button class="nav-item" data-view="completed"><svg class="icon"><use href="#i-check"/></svg> انجام‌شده‌ها <b id="completed-nav-count">۰</b></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-note"><svg class="icon"><use href="#i-spark"/></svg><h3>قدم‌های کوچک، نتیجه‌های بزرگ</h3><p>لازم نیست همه‌چیز را امروز انجام بدهی. از کار بعدی شروع کن.</p></div>
+        <p class="nav-caption">اطلاعات من</p>
+        <button class="nav-item" id="export-button" title="دریافت پشتیبان"><svg class="icon"><use href="#i-download"/></svg> دریافت پشتیبان</button>
+        <button class="nav-item" id="import-button" title="بازیابی پشتیبان"><svg class="icon"><use href="#i-upload"/></svg> بازیابی پشتیبان</button>
+        <input id="import-file" type="file" accept="application/json,.json" hidden>
+        <div class="sidebar-footer"><span class="avatar">م</span><div>فضای شخصی شما<small><span class="status-dot"></span> ذخیره در همین مرورگر</small></div><svg class="icon"><use href="#i-lock"/></svg></div>
+      </div>
+    </aside>
+    <main id="main" tabindex="-1">
+      <header class="topbar"><span>میز مطالعه <span class="breadcrumb">/</span> <strong id="breadcrumb-current">نمای کلی</strong></span><span class="today"><svg class="icon"><use href="#i-calendar"/></svg><span id="today"></span></span></header>
+      <div class="main-content">
+        <section class="page-heading"><div><div class="eyebrow"><span class="status-dot"></span> برای کارهای مهم، جا باز کن</div><h1>یک قدم جلوتر از موعد<span> باش.</span></h1><p>همهٔ تکلیف‌ها و فایل‌هایت یک‌جا؛ ذهنت آزاد، مسیرت روشن.</p></div><button class="button primary" id="add-button"><svg class="icon"><use href="#i-plus"/></svg> افزودن مهلت <kbd>N</kbd></button></section>
+        <section class="stats" aria-label="خلاصهٔ وضعیت تکلیف‌ها">
+          <div class="stat-card"><div><span class="stat-label">در حال انجام</span><span class="stat-symbol violet"><svg class="icon"><use href="#i-file"/></svg></span></div><strong id="active-count">۰</strong><p>تکلیف در مسیر انجام</p><span class="stat-line violet-line"></span></div>
+          <div class="stat-card"><div><span class="stat-label">هفت روز آینده</span><span class="stat-symbol amber"><svg class="icon"><use href="#i-clock"/></svg></span></div><strong id="week-count">۰</strong><p>فرصت برای یک شروع خوب</p><span class="stat-line amber-line"></span></div>
+          <div class="stat-card"><div><span class="stat-label">گذشته از موعد</span><span class="stat-symbol rose"><svg class="icon"><use href="#i-alert"/></svg></span></div><strong id="overdue-count">۰</strong><p>نیازمند توجه شما</p><span class="stat-line rose-line"></span></div>
+          <div class="stat-card"><div><span class="stat-label">انجام‌شده</span><span class="stat-symbol mint"><svg class="icon"><use href="#i-check"/></svg></span></div><strong id="complete-count">۰</strong><p>یک قدم به هدف نزدیک‌تر</p><span class="stat-line mint-line"></span></div>
+        </section>
+        <div class="dashboard-grid">
+          <section class="assignments-panel" aria-labelledby="list-title">
+            <div class="panel-heading"><h2 id="list-title">مهلت‌های من <span id="list-count">۰</span></h2><span class="sort-label">↕ به ترتیب نزدیک‌ترین موعد</span></div>
+            <div class="toolbar"><div class="tabs" aria-label="فیلتر وضعیت"><button class="tab active" data-filter="all" aria-pressed="true">همه</button><button class="tab" data-filter="upcoming" aria-pressed="false">پیش رو</button><button class="tab" data-filter="overdue" aria-pressed="false">عقب‌افتاده</button></div><label class="search"><svg class="icon"><use href="#i-search"/></svg><input id="search" type="search" placeholder="جست‌وجوی تکلیف…" aria-label="جست‌وجوی تکلیف"><kbd>/</kbd></label></div>
+            <div class="date-filter" id="date-filter" hidden><span id="date-filter-label"></span><button id="clear-date-filter" type="button">نمایش همه ×</button></div>
+            <div id="assignment-list" class="assignment-list" aria-label="فهرست تکلیف‌ها" aria-live="polite"></div>
+            <div class="list-footer"><span><span class="status-dot"></span> <span id="storage-status">تغییرات در این دستگاه ذخیره می‌شوند</span></span><svg class="icon"><use href="#i-lock"/></svg></div>
+          </section>
+          <aside class="right-column" aria-label="برنامه و پیشرفت">
+            <section class="next-card"><div class="eyebrow"><span class="live-dot"></span> ایستگاه بعدی</div><div id="next-assignment"></div><svg class="next-decoration" viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="64"/><circle cx="80" cy="80" r="44"/><path d="M80 48v32l-20 20"/><circle class="clock-center" cx="80" cy="80" r="5"/></svg></section>
+            <section class="week-panel"><div class="week-heading"><h3>هفت روز پیش رو</h3><svg class="icon"><use href="#i-calendar"/></svg></div><span id="week-range"></span><div class="week-calendar" id="week-calendar"></div><p><span class="calendar-dot"></span> روز موردنظر را برای دیدن تکلیف‌ها انتخاب کن.</p></section>
+            <section class="progress-panel"><div class="week-heading"><h3>قدم‌های برداشته‌شده</h3><svg class="icon"><use href="#i-spark"/></svg></div><div class="progress-detail"><span id="progress-label">هنوز در آغاز راهی</span><strong id="progress-percent">۰٪</strong></div><div class="progress-track" role="progressbar" aria-label="درصد تکمیل تکلیف‌ها" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="progress-fill"></span></div><p id="progress-note">هر تکلیف انجام‌شده، یک قدم رو به جلوست.</p></section>
+          </aside>
+        </div>
+        <footer class="page-footer"><span><svg class="icon"><use href="#i-logo"/></svg> مهلت؛ برای یک ذهن آسوده‌تر</span><span>با ریتم خودت پیش برو <svg class="icon"><use href="#i-spark"/></svg></span></footer>
+      </div>
+    </main>
+  </div>
+  <dialog id="assignment-dialog" aria-labelledby="dialog-title"><form id="assignment-form"><div class="dialog-heading"><div><div class="eyebrow">یک قدم به نظم نزدیک‌تر</div><h2 id="dialog-title">افزودن مهلت</h2></div><button type="button" class="icon-button" id="close-dialog" aria-label="بستن">×</button></div><input type="hidden" id="assignment-id"><label>عنوان تکلیف <input id="assignment-title" required maxlength="160" placeholder="مثلاً: طراحی رابط کاربری پروژه" dir="auto"></label><div class="form-row"><label>نام درس <input id="assignment-course" required maxlength="80" placeholder="مثلاً: طراحی تعامل" dir="auto"></label><label>نوع فعالیت <select id="assignment-type"><option value="Assignment">تکلیف</option><option value="Exam">آزمون</option><option value="Project">پروژه</option><option value="Reading">مطالعه</option><option value="Other">سایر</option></select></label></div><label>تاریخ و ساعت تحویل <input id="assignment-due" type="datetime-local" required dir="ltr"><small>تاریخ ورودی میلادی است؛ در داشبورد به شمسی نمایش داده می‌شود.</small><small id="timezone-note"></small></label><label>یادداشت <textarea id="assignment-notes" maxlength="4000" rows="3" placeholder="جزئیات، یک لینک مفید، یا اولین قدم برای شروع…" dir="auto"></textarea></label><label class="file-drop"><svg class="icon"><use href="#i-upload"/></svg><strong>فایل‌های مرتبط را اینجا نگه دار</strong><span>انتخاب فایل · حداکثر ۲۵ مگابایت برای هر فایل</span><input id="assignment-files" type="file" multiple aria-label="انتخاب فایل‌های پیوست"></label><div id="form-files" class="form-files"></div><p id="form-error" class="error" role="alert"></p><div class="dialog-actions"><button type="submit" class="button primary" id="save-button">ذخیرهٔ مهلت</button><button type="button" class="button secondary" id="cancel-dialog">انصراف</button></div></form></dialog>
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title"><form method="dialog"><h2 id="confirm-title">این مهلت حذف شود؟</h2><p id="confirm-message"></p><div class="dialog-actions"><button class="button danger" value="confirm">حذف مهلت</button><button class="button secondary" value="cancel">نگه داشتن</button></div></form></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
