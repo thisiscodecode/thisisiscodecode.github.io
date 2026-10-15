@@ -13,8 +13,8 @@ const document = {
   querySelectorAll() { return []; }, addEventListener() {}
 };
 const context = vm.createContext({ document, window:{ addEventListener() {} }, setInterval() {}, Intl, Date, Blob, atob, Uint8Array, console });
-vm.runInContext(source.slice(0, source.lastIndexOf('\ntry {')) + '\nglobalThis.helpers = { remaining, localDateValue, parseRecord, sizeLabel, dateFormat, getMonthCalendar, persianParts, calendarEvents };', context);
-const { remaining, localDateValue, parseRecord, sizeLabel, dateFormat, getMonthCalendar, persianParts, calendarEvents } = context.helpers;
+vm.runInContext(source.slice(0, source.lastIndexOf('\ntry {')) + '\nglobalThis.helpers = { remaining, persianDateValue, timeValue, parsePersianDateTime, parseRecord, sizeLabel, dateFormat, getMonthCalendar, persianParts, calendarEvents };', context);
+const { remaining, persianDateValue, timeValue, parsePersianDateTime, parseRecord, sizeLabel, dateFormat, getMonthCalendar, persianParts, calendarEvents } = context.helpers;
 const now = Date.parse('2026-10-15T12:00:00Z');
 
 test('countdowns use Persian digits and distinguish future and overdue boundaries', () => {
@@ -26,7 +26,8 @@ test('countdowns use Persian digits and distinguish future and overdue boundarie
 });
 test('dates display the Persian calendar and editor values round-trip in local time', () => {
   assert.match(dateFormat.format(now), /۲۳ مهر/);
-  assert.equal(new Date(localDateValue(now)).getTime(), now);
+  assert.equal(persianDateValue(now), '۱۴۰۵/۰۷/۲۳');
+  assert.equal(parsePersianDateTime(persianDateValue(now), timeValue(now)), now);
   assert.equal(sizeLabel(1048576), '۱ مگابایت');
 });
 const record = { id:'legacy-backup', title:'  آزمون  ', course:'ریاضی', type:'Exam', due:now, notes:'مرور فصل اول', completed:false, files:[{name:'notes.txt',type:'text/plain',data:'data:text/plain;base64,aGVsbG8='}] };
@@ -86,4 +87,29 @@ test('events on 1 Aban are marked only on their exact local date, including exam
 test('quiz dates survive backup parsing alongside existing exam records', () => {
   assert.equal(parseRecord({ ...record, type:'Quiz' }).type, 'Quiz');
   assert.equal(parseRecord(record).type, 'Exam');
+});
+
+test('Persian, Arabic, and Latin date digits map to the same local deadline', () => {
+  const expected = new Date(2026, 9, 23, 9, 30).getTime();
+  assert.equal(parsePersianDateTime('۱۴۰۵/۰۸/۰۱', '09:30'), expected);
+  assert.equal(parsePersianDateTime('1405/08/01', '09:30'), expected);
+  assert.equal(parsePersianDateTime('١٤٠٥/٠٨/٠١', '٠٩:٣٠'), expected);
+  assert.equal(parsePersianDateTime('1405/8/1', '09:30'), expected);
+  assert.equal(parsePersianDateTime('۱۴۰۵۰۸۰۱', '09:30'), expected);
+});
+
+test('Persian date entry validates month lengths, leap Esfand, and clock values', () => {
+  assert.equal(persianDateValue(parsePersianDateTime('1403/12/30', '23:59')), '۱۴۰۳/۱۲/۳۰');
+  assert.equal(persianDateValue(parsePersianDateTime('1405/01/31', '00:00')), '۱۴۰۵/۰۱/۳۱');
+  for (const date of ['1404/12/30', '1405/07/31', '1405/13/01', '1405/00/10', '1405/08/00', '1405/08', '', 'not a date']) {
+    assert.ok(Number.isNaN(parsePersianDateTime(date, '09:30')), date);
+  }
+  for (const time of ['24:00', '12:60', '', '9:3']) assert.ok(Number.isNaN(parsePersianDateTime('1405/08/01', time)), time);
+});
+
+test('saved timestamps round-trip through Persian input around Nowruz and midnight', () => {
+  for (const value of ['2025-03-20T23:59', '2025-03-21T00:00', '2026-03-20T23:59', '2026-03-21T00:00', '2026-10-23T00:00', '2026-12-31T23:59']) {
+    const timestamp = new Date(value).getTime();
+    assert.equal(parsePersianDateTime(persianDateValue(timestamp), timeValue(timestamp)), timestamp, value);
+  }
 });

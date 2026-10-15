@@ -80,7 +80,19 @@
         <label>نوع فعالیت <select id="assignment-type"><option value="Assignment">تکلیف</option><option value="Exam">امتحان</option><option value="Quiz">کوییز</option><option value="Project">پروژه</option><option value="Reading">مطالعه</option><option value="Other">سایر</option></select></label>
       </div>
       <label id="custom-course-label" hidden>نام درس (Other) <input id="assignment-course-other" maxlength="80" placeholder="نام درس را وارد کن" dir="auto" disabled></label>
-      <label><span id="due-label">تاریخ و ساعت ددلاین</span><input id="assignment-due" type="datetime-local" required dir="ltr"><small>ورودی میلادی · نمایش در تقویم شمسی</small><small id="timezone-note"></small></label>
+      <fieldset class="due-fields">
+        <legend id="due-label">تاریخ و ساعت ددلاین</legend>
+        <div class="due-inputs">
+          <label>تاریخ شمسی <span class="date-input-wrap"><input id="assignment-due" type="text" inputmode="numeric" required maxlength="10" placeholder="۱۴۰۵/۰۸/۰۱" dir="ltr" autocomplete="off" aria-label="تاریخ شمسی" aria-describedby="date-error timezone-note"><button type="button" id="toggle-date-picker" aria-label="انتخاب تاریخ شمسی" aria-expanded="false" aria-controls="date-picker"><svg class="icon"><use href="#i-calendar"/></svg></button></span></label>
+          <label>ساعت <input id="assignment-time" type="time" required step="60" dir="ltr"></label>
+        </div>
+        <div class="date-picker" id="date-picker" role="group" aria-label="تقویم انتخاب تاریخ شمسی" hidden>
+          <div class="month-heading"><strong id="date-picker-title" aria-live="polite"></strong><div class="month-navigation"><button type="button" id="date-picker-previous" aria-label="ماه قبل در انتخاب تاریخ">‹</button><button type="button" id="date-picker-next" aria-label="ماه بعد در انتخاب تاریخ">›</button></div></div>
+          <div class="month-weekdays" aria-hidden="true"><span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span></div>
+          <div id="date-picker-days" class="date-picker-days"></div><button type="button" id="date-picker-today">امروز</button>
+        </div>
+        <small id="date-error" class="error" role="status" hidden></small><small id="timezone-note"></small>
+      </fieldset>
       <label>یادداشت <textarea id="assignment-notes" maxlength="4000" rows="3" placeholder="جزئیات یا لینک…" dir="auto"></textarea></label>
       <label class="file-drop"><svg class="icon"><use href="#i-upload"/></svg><strong>افزودن فایل</strong><span>حداکثر ۲۵ مگابایت برای هر فایل</span><input id="assignment-files" type="file" multiple aria-label="انتخاب فایل‌های پیوست"></label>
       <div id="form-files" class="form-files"></div><p id="form-error" class="error" role="alert"></p>

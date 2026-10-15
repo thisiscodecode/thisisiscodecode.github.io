@@ -2,7 +2,7 @@ const $ = (selector) => document.querySelector(selector);
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 const MAX_BACKUP_SIZE = 200 * 1024 * 1024;
 const DAY = 86400000;
-let db, assignments = [], view = 'active', filter = 'all', search = '', selectedDay = null, calendarAnchor = Date.now(), selectedFiles = [], retainedFiles = [], toastTimer;
+let db, assignments = [], view = 'active', filter = 'all', search = '', selectedDay = null, calendarAnchor = Date.now(), editorCalendarAnchor = Date.now(), selectedFiles = [], retainedFiles = [], toastTimer;
 const LOCALE = 'fa-IR';
 const numbers = new Intl.NumberFormat(LOCALE);
 const number = (value) => numbers.format(value);
@@ -69,9 +69,43 @@ function remaining(due, now = Date.now()) {
   else value = number(Math.floor(distance / DAY)) + ' روز و ' + number(Math.floor(distance % DAY / 3600000)) + ' ساعت';
   return { text: value + (diff <= 0 ? ' گذشته' : ' مانده'), short: value, overdue: diff <= 0, soon: diff > 0 && diff < DAY * 2 };
 }
-function localDateValue(time) {
+function latinDigits(value) {
+  return String(value).replace(/[۰-۹]/g, (digit) => String(digit.charCodeAt(0) - 1776)).replace(/[٠-٩]/g, (digit) => String(digit.charCodeAt(0) - 1632)).replace(/[\u200e\u200f\u061c]/g, '').trim();
+}
+function persianDateValue(time) {
+  const { year, month, day } = persianParts(time);
+  return [year, month, day].map((value, i) => String(value).padStart(i ? 2 : 4, '0')).join('/').replace(/\d/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[Number(digit)]);
+}
+function timeValue(time) {
   const date = new Date(time);
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  return [date.getHours(), date.getMinutes()].map((value) => String(value).padStart(2, '0')).join(':');
+}
+function parsePersianDateTime(dateValue, clockValue) {
+  const dateText = latinDigits(dateValue).replace(/^(\d{4})(\d{2})(\d{2})$/, '$1/$2/$3');
+  const dateMatch = /^(\d{4})[\/.-](\d{1,2})[\/.-](\d{1,2})$/.exec(dateText);
+  const timeMatch = /^(\d{1,2}):(\d{2})$/.exec(latinDigits(clockValue));
+  if (!dateMatch || !timeMatch) return NaN;
+  const [, year, month, day] = dateMatch.map(Number);
+  const [, hour, minute] = timeMatch.map(Number);
+  if (year < 1 || month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59) return NaN;
+  // Locate the local day with Intl's Persian calendar as the source of truth.
+  // Persian year Y falls within Gregorian years Y+621 and Y+622.
+  const target = year * 372 + month * 31 + day;
+  let low = 0, high = 731;
+  while (low <= high) {
+    const offset = Math.floor((low + high) / 2);
+    const candidate = new Date(year + 621, 0, 1 + offset, 12);
+    const parts = persianParts(candidate);
+    const key = parts.year * 372 + parts.month * 31 + parts.day;
+    if (key < target) low = offset + 1;
+    else if (key > target) high = offset - 1;
+    else {
+      candidate.setHours(hour, minute, 0, 0);
+      const check = persianParts(candidate);
+      return check.year === year && check.month === month && check.day === day && candidate.getHours() === hour && candidate.getMinutes() === minute ? candidate.getTime() : NaN;
+    }
+  }
+  return NaN;
 }
 function courseTone(course) { return Array.from(course).reduce((sum, c) => sum + c.charCodeAt(0), 0) % 5; }
 function rowMarkup(item) {
@@ -142,16 +176,41 @@ function showEditor(item) {
   $('#assignment-course-other').value = isPreset ? '' : course;
   updateCourseField();
   $('#assignment-type').value = item?.type || 'Assignment';
-  $('#assignment-due').value = localDateValue(item?.due || Date.now() + DAY);
+  const due = item?.due || Date.now() + DAY;
+  $('#assignment-due').value = persianDateValue(due);
+  $('#assignment-time').value = timeValue(due);
+  editorCalendarAnchor = due;
+  closeDatePicker();
   $('#assignment-notes').value = item?.notes || '';
   updateDueLabel(); updateDateNote();
   selectedFiles = []; retainedFiles = [...(item?.files || [])]; renderFormFiles();
   $('#assignment-dialog').showModal(); $('#assignment-title').focus();
 }
 function updateDateNote() {
-  const due = new Date($('#assignment-due').value).getTime();
+  const dateInput = $('#assignment-due');
+  const validDate = Number.isFinite(parsePersianDateTime(dateInput.value, '12:00'));
+  const dateError = dateInput.value && !validDate ? 'تاریخ شمسی معتبر وارد کن؛ مثلاً ۱۴۰۵/۰۸/۰۱.' : '';
+  dateInput.setCustomValidity(dateError);
+  $('#date-error').textContent = dateError;
+  $('#date-error').hidden = !dateError;
+  const due = parsePersianDateTime(dateInput.value, $('#assignment-time').value);
   const zone = new Intl.DateTimeFormat(LOCALE, { timeZoneName:'long' }).formatToParts(Date.now()).find((part) => part.type === 'timeZoneName').value;
-  $('#timezone-note').textContent = Number.isFinite(due) ? dateFormat.format(due) + ' · ' + zone : 'یک تاریخ و ساعت معتبر انتخاب کن.';
+  $('#timezone-note').textContent = Number.isFinite(due) ? dateFormat.format(due) + ' · ' + zone : 'یک تاریخ شمسی و ساعت معتبر انتخاب کن.';
+  if (!$('#date-picker').hidden) renderDatePicker();
+}
+function closeDatePicker() {
+  $('#date-picker').hidden = true;
+  $('#toggle-date-picker').setAttribute('aria-expanded', 'false');
+}
+function renderDatePicker() {
+  const month = getMonthCalendar(editorCalendarAnchor);
+  const selected = parsePersianDateTime($('#assignment-due').value, '12:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  $('#date-picker-title').textContent = new Intl.DateTimeFormat(LOCALE, { month:'long', year:'numeric' }).format(editorCalendarAnchor);
+  $('#date-picker-days').innerHTML = '<span aria-hidden="true"></span>'.repeat(month.offset) + month.days.map((date) => {
+    const isSelected = Number.isFinite(selected) && persianDateValue(selected) === persianDateValue(date);
+    return '<button type="button" class="calendar-day ' + (date.getTime() === today.getTime() ? 'is-today ' : '') + (isSelected ? 'is-selected' : '') + '" data-picker-day="' + date.getTime() + '" aria-pressed="' + isSelected + '" aria-label="' + escape(date.toLocaleDateString(LOCALE, { weekday:'long', month:'long', day:'numeric', year:'numeric' })) + '"><strong>' + date.toLocaleDateString(LOCALE, { day:'numeric' }) + '</strong></button>';
+  }).join('');
 }
 function updateDueLabel() {
   const type = $('#assignment-type').value;
@@ -169,6 +228,33 @@ $('#assignment-course').addEventListener('change', () => {
 });
 $('#assignment-type').addEventListener('change', updateDueLabel);
 $('#assignment-due').addEventListener('input', updateDateNote);
+$('#assignment-time').addEventListener('input', updateDateNote);
+$('#assignment-due').addEventListener('blur', () => {
+  const date = parsePersianDateTime($('#assignment-due').value, '12:00');
+  if (Number.isFinite(date)) $('#assignment-due').value = persianDateValue(date);
+});
+$('#toggle-date-picker').addEventListener('click', () => {
+  if (!$('#date-picker').hidden) { closeDatePicker(); return; }
+  const date = parsePersianDateTime($('#assignment-due').value, '12:00');
+  editorCalendarAnchor = Number.isFinite(date) ? date : Date.now();
+  $('#date-picker').hidden = false;
+  $('#toggle-date-picker').setAttribute('aria-expanded', 'true');
+  renderDatePicker();
+});
+$('#date-picker-previous').addEventListener('click', () => { editorCalendarAnchor = getMonthCalendar(editorCalendarAnchor).previous.getTime(); renderDatePicker(); });
+$('#date-picker-next').addEventListener('click', () => { editorCalendarAnchor = getMonthCalendar(editorCalendarAnchor).end.getTime(); renderDatePicker(); });
+function selectEditorDate(date) {
+  $('#assignment-due').value = persianDateValue(date);
+  closeDatePicker(); updateDateNote(); $('#assignment-due').focus();
+}
+$('#date-picker-days').addEventListener('click', (event) => {
+  const button = event.target.closest('[data-picker-day]');
+  if (button) selectEditorDate(Number(button.dataset.pickerDay));
+});
+$('#date-picker-today').addEventListener('click', () => selectEditorDate(Date.now()));
+$('#assignment-dialog').addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !$('#date-picker').hidden) { event.preventDefault(); event.stopPropagation(); closeDatePicker(); $('#toggle-date-picker').focus(); }
+});
 function renderFormFiles() {
   $('#form-files').innerHTML = [...retainedFiles.map((f,i) => ({ ...f, key:'existing-' + i })), ...selectedFiles.map((f,i) => ({ name:f.name, size:f.size, key:'new-' + i }))].map((f) => '<div class="form-file"><span>' + escape(f.name) + ' · ' + sizeLabel(f.size) + '</span><button type="button" data-remove-file="' + f.key + '" aria-label="حذف پیوست ' + escape(f.name) + '">حذف</button></div>').join('');
 }
@@ -212,7 +298,7 @@ $('#assignment-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const title = $('#assignment-title').value.trim();
   const course = ($('#assignment-course').value === 'Other' ? $('#assignment-course-other').value : $('#assignment-course').value).trim();
-  const due = new Date($('#assignment-due').value).getTime();
+  const due = parsePersianDateTime($('#assignment-due').value, $('#assignment-time').value);
   if (!title || !course || !Number.isFinite(due)) { $('#form-error').textContent = 'عنوان، نام درس و یک موعد معتبر وارد کن.'; return; }
   $('#save-button').disabled = true;
   const id = $('#assignment-id').value || crypto.randomUUID();
